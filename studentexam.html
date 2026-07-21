@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam Qualifier — Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-900:#0A1830;
+    --ink-800:#132542;
+    --panel:#182B4A;
+    --panel-line:#5B6C86;
+    --paper:#F4F5F7;
+    --paper-dim:#9AA4B5;
+    --brass:#C0392B;
+    --brass-dim:#7A241C;
+    --pass:#C9CFDA;
+    --fail:#D9776D;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at top left, rgba(192,57,43,0.06), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(201,207,218,0.05), transparent 55%),
+      var(--ink-900);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:48px 20px;
+  }
+
+  .sheet{
+    width:100%;
+    max-width:640px;
+    background:var(--ink-800);
+    border:1px solid var(--panel-line);
+    border-radius:4px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+    overflow:hidden;
+    position:relative;
+  }
+
+  .sheet::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;right:0;
+    height:3px;
+    background:linear-gradient(90deg, var(--brass-dim), var(--brass), var(--brass-dim));
+  }
+
+  header{
+    padding:36px 40px 24px;
+    border-bottom:1px dashed var(--panel-line);
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 10px;
+  }
+
+  h1{
+    font-family:'Spectral',serif;
+    font-weight:600;
+    font-size:30px;
+    margin:0 0 6px;
+    color:var(--paper);
+    letter-spacing:0.01em;
+  }
+
+  .sub{
+    font-size:13.5px;
+    color:var(--paper-dim);
+    margin:0;
+    font-style:italic;
+    font-family:'Spectral',serif;
+  }
+
+  .ledger{
+    padding:28px 40px 8px;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:28px 1fr 88px 78px;
+    align-items:center;
+    gap:14px;
+    padding:14px 0;
+    border-bottom:1px solid var(--panel-line);
+  }
+
+  .row:last-child{border-bottom:none;}
+
+  .idx{
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--brass-dim);
+    font-size:12px;
+  }
+
+  .label{
+    font-family:'Spectral',serif;
+    font-size:15.5px;
+    color:var(--paper);
+  }
+
+  .weight{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--paper-dim);
+    text-align:right;
+  }
+
+  .weight strong{
+    display:block;
+    font-size:13px;
+    color:var(--brass);
+    font-weight:500;
+  }
+
+  input[type="number"]{
+    width:78px;
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:3px;
+    color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    padding:9px 10px;
+    text-align:right;
+    -moz-appearance:textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{
+    -webkit-appearance:none;margin:0;
+  }
+  input[type="number"]:focus{
+    outline:none;
+    border-color:var(--brass);
+    box-shadow:0 0 0 3px rgba(192,57,43,0.18);
+  }
+  input.invalid{border-color:var(--fail);}
+
+  .actions{
+    padding:22px 40px 32px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+
+  button{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    letter-spacing:0.02em;
+    background:var(--brass);
+    color:var(--ink-900);
+    border:none;
+    padding:13px 26px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:hover{transform:translateY(-1px); box-shadow:0 8px 18px -8px rgba(192,57,43,0.45);}
+  button:active{transform:translateY(0);}
+
+  .hint{
+    font-size:12px;
+    color:var(--paper-dim);
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  .result-wrap{
+    border-top:1px dashed var(--panel-line);
+    padding:34px 40px 40px;
+    display:none;
+    align-items:center;
+    gap:28px;
+  }
+  .result-wrap.show{display:flex;}
+
+  .stamp{
+    flex:0 0 auto;
+    width:98px;height:98px;
+    border-radius:50%;
+    border:3px solid var(--pass);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    transform:rotate(-8deg) scale(0.6);
+    opacity:0;
+    animation:stampIn 0.45s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  .stamp.fail{border-color:var(--fail);}
+  .stamp .word{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:11.5px;
+    letter-spacing:0.06em;
+    color:var(--pass);
+    line-height:1.4;
+    text-transform:uppercase;
+  }
+  .stamp.fail .word{color:var(--fail);}
+
+  @keyframes stampIn{
+    0%{opacity:0; transform:rotate(-16deg) scale(0.5);}
+    70%{opacity:1; transform:rotate(-6deg) scale(1.08);}
+    100%{opacity:1; transform:rotate(-8deg) scale(1);}
+  }
+
+  .verdict-copy{flex:1;}
+  .verdict-title{
+    font-family:'Spectral',serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .verdict-title.pass{color:var(--pass);}
+  .verdict-title.fail{color:var(--fail);}
+
+  .verdict-detail{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--paper-dim);
+    margin:0;
+    line-height:1.6;
+  }
+  .verdict-detail .num{color:var(--brass); font-weight:500;}
+
+  footer{
+    padding:16px 40px 26px;
+    border-top:1px solid var(--panel-line);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--paper-dim);
+    letter-spacing:0.05em;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  @media (max-width:480px){
+    .row{grid-template-columns:20px 1fr 74px;}
+    .weight{display:none;}
+    header,.ledger,.actions,.result-wrap,footer{padding-left:22px;padding-right:22px;}
+    .result-wrap{flex-direction:column; text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <header>
+    <p class="eyebrow">Assessment Record · 001</p>
+    <h1>Exam Qualifier</h1>
+    <p class="sub">Weighted average of 50 or higher is required to sit the exam.</p>
+  </header>
+
+  <div class="ledger">
+    <div class="row">
+      <span class="idx">01</span>
+      <span class="label">Test 1</span>
+      <span class="weight">weight<strong>30</strong></span>
+      <input type="number" id="test1" min="0" max="100" placeholder="0–100">
+    </div>
+    <div class="row">
+      <span class="idx">02</span>
+      <span class="label">Test 2</span>
+      <span class="weight">weight<strong>50</strong></span>
+      <input type="number" id="test2" min="0" max="100" placeholder="0–100">
+    </div>
+    <div class="row">
+      <span class="idx">03</span>
+      <span class="label">Assignment 1</span>
+      <span class="weight">weight<strong>10</strong></span>
+      <input type="number" id="assignment1" min="0" max="100" placeholder="0–100">
+    </div>
+    <div class="row">
+      <span class="idx">04</span>
+      <span class="label">Project</span>
+      <span class="weight">weight<strong>10</strong></span>
+      <input type="number" id="project" min="0" max="100" placeholder="0–100">
+    </div>
+  </div>
+
+  <div class="actions">
+    <button onclick="calculate()">Calculate result</button>
+    <span class="hint" id="errorMsg"></span>
+  </div>
+
+  <div class="result-wrap" id="resultWrap">
+    <div class="stamp" id="stamp">
+      <span class="word" id="stampWord">Qualified</span>
+    </div>
+    <div class="verdict-copy">
+      <p class="verdict-title" id="verdictTitle">Qualified to write the exam</p>
+      <p class="verdict-detail" id="verdictDetail">Weighted average: <span class="num">0.00</span></p>
+    </div>
+  </div>
+
+  <footer>
+    <span>PASS THRESHOLD · 50.00</span>
+    <span>(30 · 50 · 10 · 10)</span>
+  </footer>
+</div>
+
+<script>
+function calculate(){
+  const ids = ['test1','test2','assignment1','project'];
+  const weights = [30,50,10,10];
+  const values = [];
+  let valid = true;
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    const v = parseFloat(el.value);
+    el.classList.remove('invalid');
+    if(isNaN(v) || v < 0 || v > 100){
+      el.classList.add('invalid');
+      valid = false;
+    } else {
+      values.push(v);
+    }
+  });
+
+  const errorMsg = document.getElementById('errorMsg');
+  if(!valid){
+    errorMsg.textContent = 'Enter marks between 0 and 100 for every field.';
+    document.getElementById('resultWrap').classList.remove('show');
+    return;
+  }
+  errorMsg.textContent = '';
+
+  const weightedAverage = values.reduce((sum, v, i) => sum + v * weights[i], 0) / 100;
+  const qualifies = weightedAverage >= 50;
+
+  const resultWrap = document.getElementById('resultWrap');
+  const stamp = document.getElementById('stamp');
+  const stampWord = document.getElementById('stampWord');
+  const verdictTitle = document.getElementById('verdictTitle');
+  const verdictDetail = document.getElementById('verdictDetail');
+
+  stamp.classList.remove('fail');
+  verdictTitle.classList.remove('pass','fail');
+  stamp.style.animation = 'none';
+  void stamp.offsetWidth;
+  stamp.style.animation = '';
+
+  if(qualifies){
+    stampWord.textContent = 'Qualified';
+    verdictTitle.textContent = 'Qualified to write the exam';
+    verdictTitle.classList.add('pass');
+  } else {
+    stamp.classList.add('fail');
+    stampWord.textContent = 'Not Qualified';
+    verdictTitle.textContent = 'Not qualified to write the exam';
+    verdictTitle.classList.add('fail');
+  }
+
+  verdictDetail.innerHTML = `Weighted average: <span class="num">${weightedAverage.toFixed(2)}</span> / required <span class="num">50.00</span>`;
+  resultWrap.classList.add('show');
+}
+
+document.querySelectorAll('input[type="number"]').forEach(el=>{
+  el.addEventListener('keydown', e=>{
+    if(e.key === 'Enter') calculate();
+  });
+});
+</script>
+
+</body>
+</html>
